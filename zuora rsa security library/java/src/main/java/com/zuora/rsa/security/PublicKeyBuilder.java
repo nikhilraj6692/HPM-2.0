@@ -29,8 +29,15 @@ package com.zuora.rsa.security;
 import java.io.IOException;
 import java.io.StringReader;
 import java.security.Key;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.openssl.PEMReader;
+import org.bouncycastle.util.io.pem.PemReader;
+
 
 /**
  * <p><b>Function:</b> Wrap public key with public pem string.
@@ -40,10 +47,12 @@ import org.bouncycastle.openssl.PEMReader;
  * @see
  */
 public class PublicKeyBuilder {
-	public static final Key build(String publicKey) throws IOException {
-		PEMReader pemReader = new PEMReader(new StringReader("-----BEGIN PUBLIC KEY-----\n" + publicKey + "\n-----END PUBLIC KEY-----"));
+	public static final PublicKey build(String publicKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		PemReader pemReader = new PemReader(new StringReader("-----BEGIN PUBLIC KEY-----\n" + publicKey + "\n-----END PUBLIC KEY-----"));
 		try{
-			return (Key)pemReader.readObject();
+			KeyFactory kf = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(pemReader.readPemObject().getContent());
+            return (PublicKey) kf.generatePublic(keySpec);
 		}finally {
 			pemReader.close();
 		}
